@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="utf-8">
+    <title>"鼠标点击炫酷效果"</title>
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    <p id="title">鼠标点击炫酷效果</p>
+    <script>
+        document.getElementById("title").style.marginLeft = "420px";
+        document.getElementById("title").style.fontSize = "20px";
+        document.getElementById("title").style.color = "#1E90FF";
+        document.getElementById("title").style.fontWeight = "bold";
+    </script>
+</head>
+
+<body>
+    <canvas id="canvas" width="1000" height="600"
+        style="background-color:rgb(0, 0, 0);border: rgb(255, 255, 255) 1px solid">
+    </canvas>
+    <img id="img" src="https://s1.wzznft.com/i/2023/11/21/j0orsg.png">
+    <script>
+        //https://free.wzznft.com/i/2023/11/20/ouwn6r.png/*雪花*/
+        //https://s1.wzznft.com/i/2023/11/21/j0orsg.png/*四角星*/      
+        var canvas;
+        var stage;
+        var img;
+        var sprite;
+
+        window.onload = function () {
+            //主函数，定义变量，运行鼠标监听事件、循环事件
+            canvas = document.getElementById("canvas");
+            var ctx = canvas.getContext('2d');
+            img = document.getElementById("img");//通过此方法获取图片的width和height
+            stage = new createjs.Stage(canvas);
+            createjs.Touch.enable(stage);//开启触摸模式开关
+            //SpriteSheet固定格式参见CreateJ文档
+            var data = {
+                images: ["https://s1.wzznft.com/i/2023/11/21/j0orsg.png"],
+                frames: {
+                    width: img.width,
+                    height: img.height,
+                    regX: img.width * 0.5,//注册点
+                    regY: img.height * 0.5
+                }
+            }
+            sprite = new createjs.Sprite(new createjs.SpriteSheet(data));
+            //鼠标点击事件
+            stage.addEventListener("stagemousedown", clickCanvas);
+            //鼠标移动事件
+            stage.addEventListener("stagemousemove", moveCanvas);
+            //循环tick事件
+            createjs.Ticker.addEventListener("tick", tick);
+            createjs.Ticker.framerate = 35;
+        }
+        function tick() {
+            //循环体函数
+            let t = stage.numChildren;//stage中元素（child）的个数
+            //遍历stage中的child，逐一增加x,y，alpha值，   
+            for (let i = t - 1; i >= 0; i--) {
+                let s = stage.getChildAt(i);
+                s.vY += 2;//下落加速度为2
+                s.vX += 1;//水平加速度为1
+                s.x += s.vX;
+                s.y += s.vY;
+                s.scaleX += s.vS;
+                s.scaleY += s.vS;
+                s.alpha += s.vA;
+                if (s.alpha <= 0 || s.y >= canvas.height) {
+                    //如果透明度渐变为0，或者达到底部，则删除该child
+                    stage.removeChildAt(i);
+                }
+            }
+            stage.update();//循环更新stage
+        }
+        function clickCanvas() {
+            addS(Math.random() * 100 + 100, stage.mouseX, stage.mouseY, 2);
+        }
+        function moveCanvas() {
+            addS(Math.random() * 2 + 1, stage.mouseX, stage.mouseY, 1);
+        }
+        function addS(count, x, y, speed) {
+            //生成一个child(雪花)，并加入stage
+            for (let i = 0; i < Math.floor(count); i++) {
+                let s = sprite.clone();//复制一个sprite
+                s.x = x;//坐标x
+                s.y = y;//坐标y
+                s.alpha = Math.random() * 0.5 + 0.5;//透明度
+                s.rotation = 360 * Math.random();//旋转度
+                s.scaleX = s.scaleY = Math.random() * 0.9 + 0.1//缩放比例
+                let angle = 2 * Math.PI * Math.random();//速度的方向角
+                let v = (Math.random() - 0.5) * speed * 20;//移动速度的大小
+                s.vX = Math.cos(angle) * v;//水平分速度
+                s.vY = Math.sin(angle) * v;//竖直分速度
+                s.vS = (Math.random() - 0.5) * 0.15;//缩放速度
+                s.vA = -Math.random() * 0.05 - 0.01;//变透明的速度                
+                stage.addChild(s);
+            }
+        }
+    </script>
+</body>
+
+</html>
