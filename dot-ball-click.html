@@ -58,7 +58,7 @@
         function drawLine(x1, y1, x2, y2, color) {
             //画直线的函数
             ctx.beginPath();
-            ctx.strokeStyle = color;//线的粗细
+            ctx.strokeStyle = color;//线的颜色
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
             ctx.stroke();
@@ -71,8 +71,8 @@
             let alpha = 0.9 * Math.random() + 0.1;//设置alpha最低为0.1，最高值为1
             let color = "rgb(" + red + "," + green + "," + blue + ")";
             let color_alpha = "rgba(" + red + "," + green + "," + blue + "," + alpha + ")";
-            if (arguments.length != 0) {//如果实参不为空，则返回RGBA值
-                return color_alpha;
+            if (arguments.length != 0) {
+                return color_alpha;//如果实参不为空，则返回RGBA值
             }
             else {
                 return color;//默认返回RGB值
@@ -85,7 +85,7 @@
                 let φ = random(0, 360) * Math.PI / 180; //运动方向角
                 let v = 0.1 + 0.9 * Math.random();//速度大小，取值范围[0.1,1]
                 let ball = new Ball(
-                    // 为避免绘制错误，球生成的位置至少离画布边缘球本身一倍宽度的距离
+                    // 球生成的位置至少离画布边缘球本身一倍宽度的距离
                     random(0 + size, width - size),
                     random(0 + size, height - size),
                     v * Math.cos(φ) * SPEED_FACTOR,
@@ -99,15 +99,15 @@
         }
 
         var balls = [];
-        var BALL_COUNTS = 150;//小球个数
-        var SPEED_FACTOR = 1;//小球速度倍数，调整小球速度。
+        var BALL_COUNTS = 300;//小球个数
+        var SPEED_FACTOR = 2;//小球速度倍数，调整小球速度。
         balls = genBallsList();
+
 
         function loop() {
             //循环绘制背景、小球和连线
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';//背景的alpha值能影响小球运动残影
-            ctx.fillRect(0, 0, width, height);//每一帧都重绘背景 
-
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';//背景的alpha值能影响小球运动残影
+            ctx.fillRect(0, 0, width, height);//每一帧都重绘背景
             for (let i = 0; i < balls.length; i++) {
                 //逐个绘制小球
                 balls[i].draw();
@@ -120,46 +120,63 @@
                         }
                     }
                 }
-            }
 
+            }
+            drawR(mouseX, mouseY, alpha);
+            if (alpha >= 0) {
+                alpha -= 0.03;
+            }
             requestAnimationFrame(loop);
         }
         loop();
 
-        canvas.addEventListener("click", click);
-        function click(event) {
-            var mouseX = event.clientX - canvas.offsetLeft;
-            var mouseY = event.clientY - canvas.offsetTop;
-            var θ;
+        var mouseX, mouseY, radius;
+        var alpha = 0.9;
+
+        function drawR(x, y, al) {
+            let alph = al;
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(255,245,238," + alph + ")";
+            ctx.arc(x, y, 0.9 * radius, 0, 2 * Math.PI);//画圆半径比弹开半径略微小一点
+            ctx.fill();
+        }
+
+        canvas.addEventListener('click', (e) => {
+            let pos = {
+                x: e.clientX,
+                y: e.clientY
+            };
+            mouseX = pos.x;
+            mouseY = pos.y;
+            alpha = 0.9;
+            radius = 100;//鼠标点击点周边清空区域半径
             for (let i = 0; i < balls.length; i++) {
-                var dist = distance(balls[i].x, balls[i].y, mouseX, mouseY);
-                if (dist <= 100) {
-                    //console.log(i);
-                    balls[i].velX = (balls[i].velX);
-                    balls[i].velY = (balls[i].velY);
-                    θ = Math.atan2(balls[i].y - mouseY, balls[i].x - mouseX);
-                    var moveto_PosY = mouseY + 100 * Math.sin(θ);
-                    var moveto_PosX = mouseX + 100 * Math.cos(θ);
-                    if (moveto_PosY <= 0 + balls[i].size) {
-                        moveto_PosY = 0 + balls[i].size;
+                let dist = distance(pos.x, pos.y, balls[i].x, balls[i].y);
+                if (dist <= radius) {
+                    let θ = Math.atan2(balls[i].y - pos.y, balls[i].x - pos.x);//鼠标位置和小球圆心连线的角度
+                    let δ = radius - dist;//小球被弹开的距离
+                    let δx = δ * Math.cos(θ);
+                    let δy = δ * Math.sin(θ);
+                    if (balls[i].x + δx <= balls[i].size) {
+                        balls[i].x = balls[i].size + 1;
                     }
-                    if (moveto_PosY >= height - balls[i].size) {
-                        moveto_PosY = height - balls[i].size;
+                    else if (balls[i].x + δx >= width - balls[i].size) {
+                        balls[i].x = width - balls[i].size - 1;
                     }
-                    if (moveto_PosX <= 0 + balls[i].size) {
-                        moveto_PosX = 0 + balls[i].size;
+                    if (balls[i].y + δy <= balls[i].size) {
+                        balls[i].y = balls[i].size + 1;
                     }
-                    if (moveto_PosX >= width - balls[i].size) {
-                        moveto_PosX = width - balls[i].size;
+                    else if (balls[i].y + δy >= height - balls[i].size) {
+                        balls[i].y = height - balls[i].size - 1;
                     }
-                    /*if (moveto_PosX > balls[i].size && moveto_PosX < width - balls[i].size && moveto_PosY > balls[i].size && moveto_PosY < height - balls[i].size) {*/
-                        balls[i].y = moveto_PosY;
-                        balls[i].x = moveto_PosX;
-                    /*}*///有BUG
+                    if ((balls[i].x + δx > balls[i].size) && (balls[i].x + δx < width - balls[i].size) && (balls[i].y + δy > balls[i].size) && (balls[i].y + δy < height - balls[i].size)) {
+                        balls[i].x = pos.x + radius * Math.cos(θ);
+                        balls[i].y = pos.y + radius * Math.sin(θ);
+                    }
                 }
             }
-        }
-        //canvas.removeEventListener("click", click);
+        });
+
     </script>
 </body>
 
