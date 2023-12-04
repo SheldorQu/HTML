@@ -99,7 +99,7 @@
         }
 
         var balls = [];
-        var BALL_COUNTS = 300;//小球个数
+        var BALL_COUNTS = 200;//小球个数
         var SPEED_FACTOR = 2;//小球速度倍数，调整小球速度。
         balls = genBallsList();
 
@@ -124,17 +124,17 @@
             }
             drawR(mouseX, mouseY, alpha);
             if (alpha >= 0) {
-                alpha -= 0.03;
+                alpha -= 0.03;//光斑逐渐变透明
             }
             requestAnimationFrame(loop);
         }
         loop();
 
-        var mouseX, mouseY, radius;
-        var alpha = 0.9;
-
+        var mouseX, mouseY, radius，alpha;
+        
         function drawR(x, y, al) {
-            let alph = al;
+            //画鼠标点击处的光斑
+            let alph = al;//光斑透明度
             ctx.beginPath();
             ctx.fillStyle = "rgba(255,245,238," + alph + ")";
             ctx.arc(x, y, 0.9 * radius, 0, 2 * Math.PI);//画圆半径比弹开半径略微小一点
